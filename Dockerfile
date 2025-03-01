@@ -21,6 +21,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     nebula
 
+RUN mkdir -p /etc/nebula/ca
 # Create a non-privileged user that the app will run under.
 # See https://docs.docker.com/go/dockerfile-user-best-practices/
 ARG UID=10001
@@ -32,6 +33,9 @@ RUN adduser \
     --no-create-home \
     --uid "${UID}" \
     appuser
+
+RUN chown -R appuser:appuser /app
+RUN chown -R appuser:appuser /etc/nebula
 
 # Download dependencies as a separate step to take advantage of Docker's caching.
 # Leverage a cache mount to /root/.cache/pip to speed up subsequent builds.
