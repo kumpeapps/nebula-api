@@ -32,11 +32,11 @@ RUN adduser \
     --shell "/sbin/nologin" \
     --no-create-home \
     --uid "${UID}" \
-    appuser
+    nebula-api
 
-RUN chown -R appuser:appuser /app
-RUN chown -R appuser:appuser /etc/nebula
-RUN chmod -R 777 /etc/nebula
+RUN chown -R nebula-api:nebula-api /app
+RUN chown -R nebula-api:nebula-api /etc/nebula/ca
+RUN chmod -R 777 /etc/nebula/ca
 
 # Download dependencies as a separate step to take advantage of Docker's caching.
 # Leverage a cache mount to /root/.cache/pip to speed up subsequent builds.
@@ -47,13 +47,10 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     python -m pip install -r requirements.txt
 
 # Switch to the non-privileged user to run the application.
-USER appuser
+USER nebula-api
 
 # Copy the source code into the container.
 COPY . .
-
-# Expose the port that the application listens on.
-# EXPOSE 5000
 
 # Run the application.
 CMD python3 main.py
