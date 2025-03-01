@@ -25,10 +25,10 @@ def rm_host_certs(host: Host):
             logger.info(f"No certificate found for {host.hostname} to remove.")
 
 
-def generate_ca(ca_ttl_days: str, ca_name: str, ca_rotation_group: str):
+def generate_ca(ca_ttl_days: str, ca_name: str, ca_rotation_group: str, ca_folder: str):
     """Generate a new CA certificate."""
-    ca_cert_path = "ca.crt"
-    ca_key_path = "ca.key"
+    ca_cert_path = f"{ca_folder}/ca.crt"
+    ca_key_path = f"{ca_folder}/ca.key"
     ca_ttl = f"{int(ca_ttl_days) * 24}h"
     generate_ca_cmd = [
         "nebula-cert",
@@ -72,7 +72,7 @@ def generate_ca(ca_ttl_days: str, ca_name: str, ca_rotation_group: str):
     logger.info("CA certificate updated in the database")
 
 
-def generate_host_cert(host: Host, ca_cert: CA) -> Certificate:
+def generate_host_cert(host: Host, ca_cert: CA, ca_folder: str) -> Certificate:
     """Generate a new host certificate."""
     rm_host_certs(host)
     host_cert_path = f"{host.hostname}.crt"
@@ -80,9 +80,9 @@ def generate_host_cert(host: Host, ca_cert: CA) -> Certificate:
         "nebula-cert",
         "sign",
         "-ca-crt",
-        "ca.crt",
+        f"{ca_folder}/ca.crt",
         "-ca-key",
-        "ca.key",
+        f"{ca_folder}/ca.key",
         "-in-pub",
         f"{host.hostname}.pub",
         "-name",

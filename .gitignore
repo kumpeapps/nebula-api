@@ -228,3 +228,5 @@ pip-selfcheck.json
 *.crt
 *.key
 *.pem
+*.pub
+compose.yaml
