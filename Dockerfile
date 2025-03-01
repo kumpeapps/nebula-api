@@ -34,6 +34,16 @@ RUN adduser \
     --uid "${UID}" \
     nebula-api
 
+
+RUN adduser \
+    --disabled-password \
+    --gecos "" \
+    --home "/nonexistent" \
+    --shell "/sbin/nologin" \
+    --no-create-home \
+    --uid "1001" \
+    bot
+
 RUN chown -R nebula-api:nebula-api /app
 RUN chown -R nebula-api:nebula-api /etc/nebula/ca
 RUN chmod -R 777 /etc/nebula/ca
