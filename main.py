@@ -17,6 +17,7 @@ app = Flask(__name__)
 CA_TTL_DAYS = os.environ.get("NEBULA_CA_TTL_DAYS", "365")  # Default 1 year
 CA_NAME = os.environ.get("NEBULA_CA_NAME", "Nebula CA")
 CA_ROTATION_GROUP = os.environ.get("NEBULA_CA_ROTATION_GROUP", "default")
+CA_FOLDER = os.environ.get("NEBULA_CA_FOLDER", "/etc/nebula/ca")
 
 
 @app.route("/api/config", methods=["POST"])
@@ -48,11 +49,11 @@ def get_config():
         logger.error(f"Failed to write private key to file: {e}")
         return jsonify({"error": "Failed to write private key to file"}), 500
 
-    if not os.path.exists("ca.crt") or not os.path.exists("ca.key"):
+    if not os.path.exists(f"{CA_FOLDER}/ca.crt") or not os.path.exists(f"{CA_FOLDER}/ca.key"):
         logger.info(
             "CA certificate or key file does not exist, generating a new CA certificate"
         )
-        worker.generate_ca(CA_TTL_DAYS, CA_NAME, CA_ROTATION_GROUP)
+        worker.generate_ca(CA_TTL_DAYS, CA_NAME, CA_ROTATION_GROUP, CA_FOLDER)
 
     # Check if the CA certificate is within 90 days of expiration
     ca_cert = session.query(CA).order_by(CA.issued_at.desc()).first()
@@ -65,10 +66,10 @@ def get_config():
             logger.info(
                 "CA certificate is within 90 days of expiration, generating a new CA certificate"
             )
-            worker.generate_ca(CA_TTL_DAYS, CA_NAME, CA_ROTATION_GROUP)
+            worker.generate_ca(CA_TTL_DAYS, CA_NAME, CA_ROTATION_GROUP, CA_FOLDER)
     else:
         logger.info("No CA certificate found, generating a new CA certificate")
-        worker.generate_ca(CA_TTL_DAYS, CA_NAME, CA_ROTATION_GROUP)
+        worker.generate_ca(CA_TTL_DAYS, CA_NAME, CA_ROTATION_GROUP, CA_FOLDER)
 
     if host_cert:
         logger.info("Verifying the host certificate")
@@ -77,7 +78,7 @@ def get_config():
             "nebula-cert",
             "verify",
             "-ca",
-            "ca.crt",
+            f"{CA_FOLDER}/ca.crt",
             "-crt",
             f"{host.hostname}.crt",
         ]
@@ -90,7 +91,7 @@ def get_config():
             logger.error("Invalid or expired host certificate")
             logger.debug(result.stderr)
             logger.info("Generating a new host certificate")
-            host_cert = worker.generate_host_cert(host, ca_cert)
+            host_cert = worker.generate_host_cert(host, ca_cert, CA_FOLDER)
             worker.rm_host_certs(host)
         else:
             logger.info("Host certificate is valid")
@@ -113,7 +114,7 @@ def get_config():
         )
     else:
         logger.info("Generating a new host certificate")
-        host_cert = worker.generate_host_cert(host, ca_cert)
+        host_cert = worker.generate_host_cert(host, ca_cert, CA_FOLDER)
         worker.rm_host_certs(host)
 
         logger.info("New host certificate generated and updated in the database")
