@@ -1,0 +1,32 @@
+name: Push Docker Image to Docker Hub (Beta)
+
+concurrency:
+  group: "docker-push-beta"
+  cancel-in-progress: true
+
+on:
+  push:
+    branches: beta
+
+jobs:
+  deployment:
+    environment: beta
+    env:
+      DOCKER_CLIENT_TIMEOUT: 600
+      COMPOSE_HTTP_TIMEOUT: 600
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: Install Buildx
+        id: buildx
+        uses: crazy-max/ghaction-docker-buildx@v1
+        with:
+          buildx-version: latest
+      - name: Login to Docker Hub
+        run: echo "${{ secrets.HARBOR_SECRET }}" | docker login harbor.vm.kumpeapps.com -u "robot_github" --password-stdin
+      - name: Build and Deploy Image
+        run: |
+            docker buildx build --push \
+                --tag harbor.vm.kumpeapps.com/kumpeapps-public/nebula-api:latest-beta \
+                --platform linux/amd64,linux/arm/v7,linux/arm64 .

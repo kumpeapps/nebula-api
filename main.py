@@ -134,4 +134,4 @@ if __name__ == "__main__":
     Base.metadata.create_all(engine)
     logger.trace("Database tables created")
     logger.info(f"Starting Nebula API server for CA: {CA_NAME}")
-    app.run(debug=True)
+    app.run(debug=False)

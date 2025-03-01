@@ -1,0 +1,11 @@
+exclude: 
+  - development
+  - Development
+  - Beta
+  - Alpha
+  - dev
+  - PreProd
+  - API
+  - API-PreProd
+  - beta
+delete_closed_pr: true
