@@ -36,6 +36,7 @@ RUN adduser \
 
 RUN chown -R appuser:appuser /app
 RUN chown -R appuser:appuser /etc/nebula
+RUN chmod -R 777 /etc/nebula
 
 # Download dependencies as a separate step to take advantage of Docker's caching.
 # Leverage a cache mount to /root/.cache/pip to speed up subsequent builds.
